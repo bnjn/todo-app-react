@@ -58,11 +58,25 @@ function App() {
     }
 
     function handleEdit(e) {
-
+        e.preventDefault();
+        const title = document.querySelector('#editTitle').value;
+        const task = document.querySelector('#editBody').value;
+        if (title !== currentTodo.title || task !== currentTodo.task) {
+            const body = {
+                _id: currentTodo._id,
+                title: title,
+                task: task
+            }
+            editTask(body);
+        }
+        const editModal = document.querySelector('.edit-modal');
+        editModal.style.display = 'none';
+        setCurrentTodo(null);
     }
 
     function handleDelete(e) {
         e.preventDefault();
+        deleteTask(e.target.parentNode.id);
     }
 
     function createTask(task) {
@@ -79,7 +93,30 @@ function App() {
   }
 
   function editTask(task) {
+      fetch('http://localhost:1337/tasks', {
+          method: 'put',
+          mode: 'cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            _id: task._id,
+            title: task.title,
+            task: task.task
+          })
+      }).then(() => {getTodos()})
+          .catch(err => console.error(err));
+  }
 
+  function deleteTask(id) {
+        console.log(id);
+        fetch('http://localhost:1337/tasks', {
+            method: 'delete',
+            mode: 'cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                _id: id
+            })
+        }).then(() => {getTodos()})
+                .catch(err => console.error(err));
   }
 
   return (
@@ -115,7 +152,7 @@ function App() {
                         <p>{todo.task}</p>
                         <p>Completed: {todo.completed ? 'yes' : 'no'}</p>
                         <p>{todo.date}</p>
-                        <button onClick={handleEditModal}>Edit</button><button onClick={handleDelete}>Delete</button>
+                        <button type='button' onClick={handleEditModal}>Edit</button><button type='button' onClick={handleDelete}>Delete</button>
                     </div>
                 )
             })

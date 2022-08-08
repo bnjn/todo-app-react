@@ -3,6 +3,7 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const {ObjectId} = require("mongodb");
 
 // MongoDB
 const MongoClient = require('mongodb').MongoClient;
@@ -49,7 +50,33 @@ MongoClient.connect(url, { useNewUrlParser: true })
 
         // PUT routes
         app.put('/tasks', (req, res) => {
-            console.log(req.body);
+            todosCollection.findOneAndUpdate(
+                { _id: ObjectId(req.body._id) },
+                {
+                    $set: {
+                        title: req.body.title,
+                        task: req.body.task
+                    }
+                },
+                {
+                    upsert: false
+                }
+            )
+                .then(result => {
+                    res.json('success')
+                })
+                .catch(error => console.error(error))
+        });
+
+        // DELETE routes
+        app.delete('/tasks', (req, res) => {
+            todosCollection.deleteOne(
+                { _id: ObjectId(req.body._id) }
+            )
+                .then(result => {
+                    res.json('success')
+                })
+                .catch(error => console.error(error))
         });
     })
     .catch(console.error);
