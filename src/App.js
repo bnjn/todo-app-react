@@ -4,38 +4,68 @@ import {useEffect, useState} from "react";
 function App() {
 
   const [todos, setTodos] = useState([]);
+  const [currentTodo, setCurrentTodo] = useState(null);
 
-  useEffect(() => {
-      getTodos();
-  }, []);
+      useEffect(() => {
+          getTodos();
+      }, []);
 
-  function getTodos() {
-      fetch('http://localhost:1337/tasks', {
-          method: 'GET',
-          mode: 'cors',
-      }).then((res) => {
-          return res.json();
-      })
-          .then((data) => {
-              setTodos(data);
-          })
-          .catch(err => console.error(err));
-  }
+      useEffect(() => {
+          if (currentTodo) {
+              document.querySelector('#editTitle').value = currentTodo.title;
+              document.querySelector('#editBody').value = currentTodo.task;
+          }
+      }, [currentTodo]);
 
-  function handleSubmit(e) {
-      e.preventDefault();
-      const title = document.querySelector('#taskTitle').value;
-      const taskBody = document.querySelector('#taskBody').value;
-      const task = {
-          title: title,
-          task: taskBody,
-          completed: false,
-          date: new Date()
-      };
-      createTask(task);
-  }
+    function getTodos() {
+        fetch('http://localhost:1337/tasks', {
+            method: 'GET',
+            mode: 'cors',
+        }).then((res) => {
+            return res.json();
+        })
+            .then((data) => {
+                setTodos(data);
+            })
+            .catch(err => console.error(err));
+    }
 
-  function createTask(task) {
+    function handleCreate(e) {
+        e.preventDefault();
+        const title = document.querySelector('#taskTitle').value;
+        const taskBody = document.querySelector('#taskBody').value;
+        const task = {
+            title: title,
+            task: taskBody,
+            completed: false,
+            date: new Date()
+        };
+        createTask(task);
+    }
+
+    function handleEditModal(e) {
+        e.preventDefault();
+        setCurrentTodo(todos.find(todo => todo._id === e.target.parentNode.id));
+        const editModal = document.querySelector('.edit-modal');
+        editModal.style.display = 'flex';
+    }
+
+    function handleEditModalClose(e) {
+        e.preventDefault();
+        const editModal = document.querySelector('.edit-modal');
+        editModal.style.display = 'none';
+        setCurrentTodo(null);
+    }
+
+    function handleEdit(e) {
+
+    }
+
+    function handleDelete(e) {
+        e.preventDefault();
+    }
+
+    function createTask(task) {
       fetch('http://localhost:1337/tasks', {
           method: 'POST',
           mode: 'cors',
@@ -44,13 +74,26 @@ function App() {
               'Accept': 'application/json'
           },
           body: JSON.stringify(task)
-      }).then((res) => {getTodos()})
+      }).then(() => {getTodos()})
         .catch(err => console.error(err));
   }
 
+  function editTask(task) {
+
+  }
 
   return (
     <div className="App">
+        <div className='edit-modal'>
+            <form className='edit-form'>
+                <label form='editTitle'>Title</label>
+                <input id='editTitle' type='text'/>
+                <label form='editBody'>Task</label>
+                <input id='editBody' type='text'/>
+                <button type='button' onClick={handleEdit}>Submit</button>
+                <button type='button' onClick={handleEditModalClose}>Cancel</button>
+            </form>
+        </div>
         <header>
             <div className='title'>
                 <h1>ToDo Application</h1>
@@ -61,19 +104,18 @@ function App() {
             <input id='taskTitle' type='text'/>
             <label form='taskBody'>Task</label>
             <input id='taskBody' type='text'/>
-            <button id='submitButton' onClick={handleSubmit}>Submit</button>
+            <button id='submitButton' onClick={handleCreate}>Submit</button>
         </form>
         <div className="tasks">
         {
             todos.map((todo, index) => {
-                console.log(todo.completed)
                 return (
                     <div className='task-card' id={todo._id} key={index}>
                         <h3>{todo.title}</h3>
                         <p>{todo.task}</p>
                         <p>Completed: {todo.completed ? 'yes' : 'no'}</p>
                         <p>{todo.date}</p>
-                        <button>Edit</button><button>Delete</button>
+                        <button onClick={handleEditModal}>Edit</button><button onClick={handleDelete}>Delete</button>
                     </div>
                 )
             })

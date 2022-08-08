@@ -26,3 +26,14 @@
     background-color: white;
     filter: drop-shadow(5px 5px 5px black);
 }
+
+.edit-modal {
+    display: none;
+    justify-content: center;
+    width: 100%;
+    flex-direction: column;
+    position: sticky;
+    top: 50vh;
+    background-color: white;
+    z-index: 100;
+}

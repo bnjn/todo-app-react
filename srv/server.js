@@ -46,5 +46,10 @@ MongoClient.connect(url, { useNewUrlParser: true })
                 .then(result => {res.status(200).send()})
                 .catch(err => console.error(err))
         });
+
+        // PUT routes
+        app.put('/tasks', (req, res) => {
+            console.log(req.body);
+        });
     })
     .catch(console.error);
