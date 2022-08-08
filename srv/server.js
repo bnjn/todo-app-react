@@ -81,8 +81,7 @@ MongoClient.connect(url, { useNewUrlParser: true })
                     }
                 )
                     .then(result => {
-                        res.json('success')
-                        console.log(result);
+                        res.json('success');
                     })
                     .catch(error => console.error(error))
             }
