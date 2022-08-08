@@ -27,6 +27,18 @@
     filter: drop-shadow(5px 5px 5px black);
 }
 
+.task-card button {
+    z-index: 50;
+}
+
+.task-card-completed {
+    background-color: darkseagreen;
+}
+
+.task-card-uncompleted {
+    background-color: palevioletred;
+}
+
 .edit-modal {
     display: none;
     justify-content: center;

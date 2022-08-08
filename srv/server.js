@@ -34,7 +34,7 @@ MongoClient.connect(url, { useNewUrlParser: true })
             res.send('Todo backend up and running.');
         });
         app.get('/tasks', (req, res) => {
-            todosCollection.find().toArray()
+            todosCollection.find().sort({date: -1}).toArray()
                 .then(results => {
                     res.status(200).send(results);
                 })
@@ -50,22 +50,42 @@ MongoClient.connect(url, { useNewUrlParser: true })
 
         // PUT routes
         app.put('/tasks', (req, res) => {
-            todosCollection.findOneAndUpdate(
-                { _id: ObjectId(req.body._id) },
-                {
-                    $set: {
-                        title: req.body.title,
-                        task: req.body.task
+            if (req.body.type === 'edit') {
+                todosCollection.findOneAndUpdate(
+                    {_id: ObjectId(req.body._id)},
+                    {
+                        $set: {
+                            title: req.body.title,
+                            task: req.body.task
+                        }
+                    },
+                    {
+                        upsert: false
                     }
-                },
-                {
-                    upsert: false
-                }
-            )
-                .then(result => {
-                    res.json('success')
-                })
-                .catch(error => console.error(error))
+                )
+                    .then(result => {
+                        res.json('success')
+                    })
+                    .catch(error => console.error(error))
+            } else if (req.body.type === 'complete') {
+                const completed = !req.body.completed;
+                todosCollection.findOneAndUpdate(
+                    {_id: ObjectId(req.body._id)},
+                    {
+                        $set: {
+                            completed: completed
+                        }
+                    },
+                    {
+                        upsert: false
+                    }
+                )
+                    .then(result => {
+                        res.json('success')
+                        console.log(result);
+                    })
+                    .catch(error => console.error(error))
+            }
         });
 
         // DELETE routes

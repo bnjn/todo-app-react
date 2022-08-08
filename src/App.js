@@ -45,7 +45,7 @@ function App() {
 
     function handleEditModal(e) {
         e.preventDefault();
-        setCurrentTodo(todos.find(todo => todo._id === e.target.parentNode.id));
+        setCurrentTodo(todos.find(todo => todo._id === e.target.parentNode.parentNode.id));
         const editModal = document.querySelector('.edit-modal');
         editModal.style.display = 'flex';
     }
@@ -76,7 +76,13 @@ function App() {
 
     function handleDelete(e) {
         e.preventDefault();
-        deleteTask(e.target.parentNode.id);
+        deleteTask(e.target.parentNode.parentNode.id);
+    }
+
+    function handleComplete(e) {
+        e.preventDefault();
+        const todo = todos.find(todo => todo._id === e.target.id);
+        completeTask({id: e.target.id, completed: todo.completed});
     }
 
     function createTask(task) {
@@ -100,14 +106,14 @@ function App() {
           body: JSON.stringify({
             _id: task._id,
             title: task.title,
-            task: task.task
+            task: task.task,
+            type: 'edit'
           })
       }).then(() => {getTodos()})
           .catch(err => console.error(err));
   }
 
   function deleteTask(id) {
-        console.log(id);
         fetch('http://localhost:1337/tasks', {
             method: 'delete',
             mode: 'cors',
@@ -117,6 +123,20 @@ function App() {
             })
         }).then(() => {getTodos()})
                 .catch(err => console.error(err));
+  }
+
+  function completeTask(task) {
+      fetch('http://localhost:1337/tasks', {
+          method: 'put',
+          mode: 'cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+              _id: task.id,
+              type: 'complete',
+              completed: task.completed
+          })
+      }).then(() => {getTodos()})
+          .catch(err => console.error(err));
   }
 
   return (
@@ -146,13 +166,21 @@ function App() {
         <div className="tasks">
         {
             todos.map((todo, index) => {
+                let completed;
+                if (todo.completed) {
+                    completed = 'task-card-completed';
+                } else {
+                    completed = 'task-card-uncompleted';
+                }
                 return (
-                    <div className='task-card' id={todo._id} key={index}>
+                    <div onClick={handleComplete} className={`task-card ${completed}`} id={todo._id} key={index}>
                         <h3>{todo.title}</h3>
                         <p>{todo.task}</p>
-                        <p>Completed: {todo.completed ? 'yes' : 'no'}</p>
                         <p>{todo.date}</p>
-                        <button type='button' onClick={handleEditModal}>Edit</button><button type='button' onClick={handleDelete}>Delete</button>
+                        <div onClick={(e) => e.stopPropagation()}>
+                            <button type='button' onClick={handleEditModal}>Edit</button>
+                            <button type='button' onClick={handleDelete}>Delete</button>
+                        </div>
                     </div>
                 )
             })
