@@ -4,6 +4,9 @@ function TodoList(props) {
     const handleComplete = props.handleComplete;
     const handleEditModal = props.handleEditModal;
     const handleDelete = props.handleDelete;
+    const loading = props.loading;
+
+    if (loading) return <h2>LOADING...</h2>;
 
     return (
         <div className="tasks">

@@ -4,35 +4,62 @@ import EditModal from "./components/EditModal";
 import TodoList from "./components/TodoList";
 import Header from "./components/Header";
 import NewTaskForm from "./components/NewTaskForm";
+import useFetch from "./hooks/useFetch";
 
 function App() {
-
-  const [todos, setTodos] = useState([]);
   const [currentTodo, setCurrentTodo] = useState(null);
+  const {todos, loading, error, getTodos} = useFetch(
+      'http://localhost:1337/tasks',
+      'GET'
+  );
 
-      useEffect(() => {
-          getTodos();
-      }, []);
+  useEffect(() => {
+      if (currentTodo) {
+          document.querySelector('#editTitle').value = currentTodo.title;
+          document.querySelector('#editBody').value = currentTodo.task;
+      }
+  }, [currentTodo]);
 
-      useEffect(() => {
-          if (currentTodo) {
-              document.querySelector('#editTitle').value = currentTodo.title;
-              document.querySelector('#editBody').value = currentTodo.task;
-          }
-      }, [currentTodo]);
-
-    function getTodos() {
+    function createTask(task) {
         fetch('http://localhost:1337/tasks', {
-            method: 'GET',
+            method: 'POST',
             mode: 'cors',
-        }).then((res) => {
-            return res.json();
-        })
-            .then((data) => {
-                setTodos(data);
-            })
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(task)
+        }).then(() => {getTodos()})
             .catch(err => console.error(err));
     }
+
+    function deleteTask(id) {
+        fetch('http://localhost:1337/tasks', {
+            method: 'delete',
+            mode: 'cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                _id: id
+            })
+        }).then(() => {getTodos()})
+            .catch(err => console.error(err));
+    }
+
+    function completeTask(task) {
+        fetch('http://localhost:1337/tasks', {
+            method: 'put',
+            mode: 'cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                _id: task.id,
+                type: 'complete',
+                completed: task.completed
+            })
+        }).then(() => {getTodos()})
+            .catch(err => console.error(err));
+    }
+
+    // Handle onClicks
 
     function handleCreate(e) {
         e.preventDefault();
@@ -65,45 +92,6 @@ function App() {
         completeTask({id: e.target.id, completed: todo.completed});
     }
 
-    function createTask(task) {
-      fetch('http://localhost:1337/tasks', {
-          method: 'POST',
-          mode: 'cors',
-          headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json'
-          },
-          body: JSON.stringify(task)
-      }).then(() => {getTodos()})
-        .catch(err => console.error(err));
-  }
-
-  function deleteTask(id) {
-        fetch('http://localhost:1337/tasks', {
-            method: 'delete',
-            mode: 'cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                _id: id
-            })
-        }).then(() => {getTodos()})
-                .catch(err => console.error(err));
-  }
-
-  function completeTask(task) {
-      fetch('http://localhost:1337/tasks', {
-          method: 'put',
-          mode: 'cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-              _id: task.id,
-              type: 'complete',
-              completed: task.completed
-          })
-      }).then(() => {getTodos()})
-          .catch(err => console.error(err));
-  }
-
   return (
     <div className="App">
         <EditModal
@@ -118,6 +106,7 @@ function App() {
         />
         <TodoList
             todos={todos}
+            loading={loading}
             handleComplete={handleComplete}
             handleEditModal={handleEditModal}
             handleDelete={handleDelete}
