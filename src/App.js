@@ -1,6 +1,9 @@
 import './App.css';
 import {useEffect, useState} from "react";
 import EditModal from "./components/EditModal";
+import TodoList from "./components/TodoList";
+import Header from "./components/Header";
+import NewTaskForm from "./components/NewTaskForm";
 
 function App() {
 
@@ -51,30 +54,6 @@ function App() {
         editModal.style.display = 'flex';
     }
 
-    // function handleEditModalClose(e) {
-    //     e.preventDefault();
-    //     const editModal = document.querySelector('.edit-modal');
-    //     editModal.style.display = 'none';
-    //     setCurrentTodo(null);
-    // }
-    //
-    // function handleEdit(e) {
-    //     e.preventDefault();
-    //     const title = document.querySelector('#editTitle').value;
-    //     const task = document.querySelector('#editBody').value;
-    //     if (title !== currentTodo.title || task !== currentTodo.task) {
-    //         const body = {
-    //             _id: currentTodo._id,
-    //             title: title,
-    //             task: task
-    //         }
-    //         editTask(body);
-    //     }
-    //     const editModal = document.querySelector('.edit-modal');
-    //     editModal.style.display = 'none';
-    //     setCurrentTodo(null);
-    // }
-
     function handleDelete(e) {
         e.preventDefault();
         deleteTask(e.target.parentNode.parentNode.id);
@@ -98,21 +77,6 @@ function App() {
       }).then(() => {getTodos()})
         .catch(err => console.error(err));
   }
-
-  // function editTask(task) {
-  //     fetch('http://localhost:1337/tasks', {
-  //         method: 'put',
-  //         mode: 'cors',
-  //         headers: { 'Content-Type': 'application/json' },
-  //         body: JSON.stringify({
-  //           _id: task._id,
-  //           title: task.title,
-  //           task: task.task,
-  //           type: 'edit'
-  //         })
-  //     }).then(() => {getTodos()})
-  //         .catch(err => console.error(err));
-  // }
 
   function deleteTask(id) {
         fetch('http://localhost:1337/tasks', {
@@ -142,52 +106,22 @@ function App() {
 
   return (
     <div className="App">
-        {/*<div className='edit-modal'>*/}
-        {/*    <form className='edit-form'>*/}
-        {/*        <label form='editTitle'>Title</label>*/}
-        {/*        <input id='editTitle' type='text'/>*/}
-        {/*        <label form='editBody'>Task</label>*/}
-        {/*        <input id='editBody' type='text'/>*/}
-        {/*        <button type='button' onClick={handleEdit}>Submit</button>*/}
-        {/*        <button type='button' onClick={handleEditModalClose}>Cancel</button>*/}
-        {/*    </form>*/}
-        {/*</div>*/}
-        <EditModal currentTodo={currentTodo} setCurrentTodo={setCurrentTodo} getTodos={getTodos} />
-        <header>
-            <div className='title'>
-                <h1>ToDo Application</h1>
-            </div>
-        </header>
-        <form className='task-form'>
-            <label form='taskTitle'>Title</label>
-            <input id='taskTitle' type='text'/>
-            <label form='taskBody'>Task</label>
-            <input id='taskBody' type='text'/>
-            <button id='submitButton' onClick={handleCreate}>Submit</button>
-        </form>
-        <div className="tasks">
-        {
-            todos.map((todo, index) => {
-                let completed;
-                if (todo.completed) {
-                    completed = 'task-card-completed';
-                } else {
-                    completed = 'task-card-uncompleted';
-                }
-                return (
-                    <div onClick={handleComplete} className={`task-card ${completed}`} id={todo._id} key={index}>
-                        <h3>{todo.title}</h3>
-                        <p>{todo.task}</p>
-                        <p>{todo.date}</p>
-                        <div onClick={(e) => e.stopPropagation()}>
-                            <button type='button' onClick={handleEditModal}>Edit</button>
-                            <button type='button' onClick={handleDelete}>Delete</button>
-                        </div>
-                    </div>
-                )
-            })
-        }
-        </div>
+        <EditModal
+            currentTodo={currentTodo}
+            setCurrentTodo={setCurrentTodo}
+            todos={todos}
+            getTodos={getTodos}
+        />
+        <Header />
+        <NewTaskForm
+            handleCreate={handleCreate}
+        />
+        <TodoList
+            todos={todos}
+            handleComplete={handleComplete}
+            handleEditModal={handleEditModal}
+            handleDelete={handleDelete}
+        />
     </div>
   );
 }
