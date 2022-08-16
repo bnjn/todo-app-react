@@ -10,7 +10,7 @@ Written with MERN.
 
 
 ## TODO:
-- Seperate code into components
+- ~~Seperate code into components~~
 - Refactor a bit. (add env vars)
 - Data sanitisation and validation on back end.
 - Unit tests.

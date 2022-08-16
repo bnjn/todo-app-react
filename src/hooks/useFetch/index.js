@@ -1,34 +1,18 @@
 import {useEffect, useState} from "react";
 
-function useFetch(url, method, data) {
+function useFetch() {
+    const url = 'http://localhost:1337/tasks';
     const [todos, setTodos] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    // Get todos.
     useEffect(() => {
-        setLoading(true);
-        fetch(url, {
-            method: method,
-            mode: 'cors',
-        })
-        .then((res) => {
-            return res.json()
-        })
-        .then((data) => {
-            setTodos(data);
-        })
-        .catch((error) => {
-            setError(error);
-        })
-        .finally(() => {
-            setLoading(false);
-        });
-    }, [url]);
+        getTodos();
+    }, [url, todos]);
 
     function getTodos() {
         setLoading(true);
-        fetch('http://localhost:1337/tasks', {
+        fetch(url, {
             method: 'GET',
             mode: 'cors',
         }).then((res) => {
@@ -42,14 +26,29 @@ function useFetch(url, method, data) {
             })
             .finally(() => {
                 setLoading(false);
-        });
+            });
     }
 
-    // useEffect(() => {
-    //     console.log(todos);
-    // }, [todos]);
-
-    return {todos, loading, error, getTodos};
+    function setTodo(data, method) {
+        setLoading(true);
+        console.log(method)
+        fetch(url, {
+            method: method,
+            mode: 'cors',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .catch(error => {
+            setError(error);
+        })
+        .finally(() => {
+            setLoading(false);
+        });
+    }
+    return {todos, loading, error, getTodos, setTodo};
 }
 
 export default useFetch;

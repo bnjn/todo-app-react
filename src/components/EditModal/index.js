@@ -1,8 +1,10 @@
+import useFetch from "../../hooks/useFetch";
+
 function EditModal(props) {
 
     const currentTodo = props.currentTodo;
     const setCurrentTodo = props.setCurrentTodo;
-    const getTodos = props.getTodos;
+    const {getTodos, setTodo} = useFetch();
 
     function handleEditModalClose(e) {
         e.preventDefault();
@@ -14,33 +16,20 @@ function EditModal(props) {
     function handleEdit(e) {
         e.preventDefault();
         const title = document.querySelector('#editTitle').value;
-        const task = document.querySelector('#editBody').value;
-        if (title !== currentTodo.title || task !== currentTodo.task) {
-            const body = {
+        const todo = document.querySelector('#editBody').value;
+        if (title !== currentTodo.title || todo !== currentTodo.task) {
+            const task = {
                 _id: currentTodo._id,
                 title: title,
-                task: task
+                task: todo,
+                type: 'edit'
             }
-            editTask(body);
+            setTodo(task,'PUT');
+            getTodos();
         }
         const editModal = document.querySelector('.edit-modal');
         editModal.style.display = 'none';
         setCurrentTodo(null);
-    }
-
-    function editTask(task) {
-        fetch('http://localhost:1337/tasks', {
-            method: 'put',
-            mode: 'cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                _id: task._id,
-                title: task.title,
-                task: task.task,
-                type: 'edit'
-            })
-        }).then(() => {getTodos()})
-            .catch(err => console.error(err));
     }
 
     return (
