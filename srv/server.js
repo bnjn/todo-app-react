@@ -21,7 +21,7 @@ MongoClient.connect(url, { useNewUrlParser: true })
         // Middleware
         app.use(bodyParser.json());
         app.use(cors({
-            origin: 'http://localhost:3000'
+            origin: '*'
         }));
 
         // Start server

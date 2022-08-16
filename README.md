@@ -10,9 +10,10 @@ Written with MERN.
 
 
 ## TODO:
-- Seperate code into components
+- ~~Seperate code into components~~
 - Refactor a bit. (add env vars)
 - Data sanitisation and validation on back end.
+- Unit tests.
 - Error messages on front end for empty fields, too many chars etc.
 - Improve css and html semantics.
 - Write docs and mongodb schema.
