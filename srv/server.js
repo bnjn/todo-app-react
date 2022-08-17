@@ -1,4 +1,6 @@
 require('dotenv').config()
+const Ajv = require('ajv');
+const ajv = new Ajv();
 
 // Express
 const express = require('express');
@@ -9,6 +11,52 @@ const {ObjectId} = require("mongodb");
 
 // MongoDB
 const MongoClient = require('mongodb').MongoClient;
+
+// Define schema
+
+const createSchema = {
+    type: 'object',
+    properties: {
+        title: {type: 'string'},
+        task: {type: 'string'},
+        completed: {type: 'boolean'},
+        date: {type: 'string'}
+    },
+    required: ['title', 'task', 'completed', 'date'],
+    additionalProperties: false
+}
+
+const editSchema = {
+    type: 'object',
+    properties: {
+        _id: {type: 'string'},
+        title: {type: 'string'},
+        task: {type: 'string'},
+        type: {type: 'string'},
+    },
+    required: ['_id', 'title', 'task', 'type'],
+    additionalProperties: false
+}
+
+const completeSchema = {
+    type: 'object',
+    properties: {
+        _id: {type: 'string'},
+        type: {type: 'string'},
+        completed: {type: 'boolean'},
+    },
+    required: ['_id', 'type', 'completed'],
+    additionalProperties: false
+}
+
+const deleteSchema = {
+    type: 'object',
+    properties: {
+        _id: {type: 'string'}
+    },
+    required: ['_id'],
+    additionalProperties: false
+}
 
 MongoClient.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnifiedTopology: true })
     .then((client) => {
@@ -43,9 +91,15 @@ MongoClient.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnified
 
         // POST routes
         app.post('/tasks',(req, res) => {
-            todosCollection.insertOne(req.body)
+            const validate = ajv.compile(createSchema);
+            if (validate(req.body)) {
+                todosCollection.insertOne(req.body)
                 .then(result => {res.status(200).send()})
                 .catch(err => console.error(err))
+            } else {
+                res.json('invalid request body')
+                .catch(err => console.error(err));
+            }
         });
 
         // PUT routes
@@ -84,6 +138,9 @@ MongoClient.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnified
                         res.json('success');
                     })
                     .catch(error => console.error(error))
+            } else {
+                res.json('failed')
+                .catch((error => console.error(error)));
             }
         });
 
