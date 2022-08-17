@@ -5,7 +5,19 @@ Written with MERN.
 ## Dev env
 - Set MongoDB server URL in `srv/.env`.
 - Create a db named and set the name in `srv/.env`.
-- Creat a collection in the new DB named `todos`.
+- Create a collection in the new DB named `todos`.
+- Create `srv/.env` with the text:
+
+`MONGODB_URL="DBURLHERE"`
+
+
+`DB_NAME="todoapp"`
+
+
+  `PORT="1337"`
+
+
+  `CORS_ORIGIN="*"`
 - `npm run dev` in `./srv` to start back end.
 - `npm start` in `./` to start front end.
 
