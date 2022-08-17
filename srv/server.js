@@ -105,54 +105,72 @@ MongoClient.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnified
         // PUT routes
         app.put('/tasks', (req, res) => {
             if (req.body.type === 'edit') {
-                todosCollection.findOneAndUpdate(
-                    {_id: ObjectId(req.body._id)},
-                    {
-                        $set: {
-                            title: req.body.title,
-                            task: req.body.task
+                const validate = ajv.compile(editSchema);
+                if (validate(req.body)) {
+                    todosCollection.findOneAndUpdate(
+                        {_id: ObjectId(req.body._id)},
+                        {
+                            $set: {
+                                title: req.body.title,
+                                task: req.body.task
+                            }
+                        },
+                        {
+                            upsert: false
                         }
-                    },
-                    {
-                        upsert: false
-                    }
-                )
-                    .then(result => {
-                        res.json('success')
-                    })
-                    .catch(error => console.error(error))
+                    )
+                        .then(result => {
+                            res.json('success')
+                        })
+                        .catch(error => console.error(error))
+                } else {
+                    res.json('invalid request body')
+                        .catch(err => console.error(err));
+                }
             } else if (req.body.type === 'complete') {
-                const completed = !req.body.completed;
-                todosCollection.findOneAndUpdate(
-                    {_id: ObjectId(req.body._id)},
-                    {
-                        $set: {
-                            completed: completed
+                const validate = ajv.compile(completeSchema);
+                if (validate(req.body)) {
+                    const completed = !req.body.completed;
+                    todosCollection.findOneAndUpdate(
+                        {_id: ObjectId(req.body._id)},
+                        {
+                            $set: {
+                                completed: completed
+                            }
+                        },
+                        {
+                            upsert: false
                         }
-                    },
-                    {
-                        upsert: false
-                    }
-                )
+                    )
                     .then(result => {
                         res.json('success');
                     })
                     .catch(error => console.error(error))
+                } else {
+                    res.json('invalid request body')
+                        .catch(err => console.error(err));
+                }
             } else {
-                res.json('failed')
+                res.json('invalid PUT type')
                 .catch((error => console.error(error)));
             }
         });
 
         // DELETE routes
         app.delete('/tasks', (req, res) => {
-            todosCollection.deleteOne(
-                { _id: ObjectId(req.body._id) }
-            )
-                .then(result => {
-                    res.json('success')
-                })
-                .catch(error => console.error(error))
+            const validate = ajv.compile(deleteSchema);
+            if (validate(req.body)) {
+                todosCollection.deleteOne(
+                    { _id: ObjectId(req.body._id) }
+                )
+                    .then(result => {
+                        res.json('success')
+                    })
+                    .catch(error => console.error(error))
+            } else {
+                res.json('invalid request body')
+                    .catch(err => console.error(err));
+            }
         });
     })
     .catch(console.error);
