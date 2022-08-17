@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 // Express
 const express = require('express');
 const app = express();
@@ -7,25 +9,23 @@ const {ObjectId} = require("mongodb");
 
 // MongoDB
 const MongoClient = require('mongodb').MongoClient;
-const url = 'mongodb://localhost:27017';
-const dbName = 'todoapp';
 
-MongoClient.connect(url, { useNewUrlParser: true })
+MongoClient.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnifiedTopology: true })
     .then((client) => {
         // DB Setup
-        const db = client.db(dbName);
+        const db = client.db(process.env.DB_NAME);
         console.log(`Connected MongoDB`);
-        console.log(`Database: ${dbName}`);
+        console.log(`Database: ${process.env.DB_NAME}`);
         const todosCollection = db.collection('todos');
 
         // Middleware
         app.use(bodyParser.json());
         app.use(cors({
-            origin: '*'
+            origin: process.env.CORS_ORIGIN
         }));
 
         // Start server
-        app.listen(1337, () => {
+        app.listen(process.env.PORT, () => {
             console.log('listening on port 1337');
         });
 

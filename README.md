@@ -3,15 +3,16 @@
 Written with MERN.
 
 ## Dev env
-- Install a MongoDB server locally. Use default or remember to change irl in server.js.
-- Create a db named `todoapp` and a collection inside named `todos`. Vars for these are in server.js.
+- Set MongoDB server URL in `srv/.env`.
+- Create a db named and set the name in `srv/.env`.
+- Creat a collection in the new DB named `todos`.
 - `npm run dev` in `./srv` to start back end.
 - `npm start` in `./` to start front end.
 
 
 ## TODO:
 - ~~Seperate code into components~~
-- Refactor a bit. (add env vars)
+- ~~Refactor a bit. (add env vars)~~
 - Data sanitisation and validation on back end.
 - Unit tests.
 - Error messages on front end for empty fields, too many chars etc.
