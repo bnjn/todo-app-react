@@ -4,7 +4,7 @@ Written with MERN.
 
 ## Dev env
 - Set MongoDB server URL in `srv/.env`.
-- Create a db named and set the name in `srv/.env`.
+- Create a db and set the name in `srv/.env`.
 - Create a collection in the new DB named `todos`.
 - Create `srv/.env` with the text:
 
