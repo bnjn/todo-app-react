@@ -1,16 +1,14 @@
 import {useEffect, useState} from "react";
 
 function useFetch() {
-    const url = 'http://localhost:1337/tasks';
+    const port = "1337";
+    const url = `https://localhost:${port}/tasks`;
     const [todos, setTodos] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        getTodos();
-    }, [url, todos]);
-
-    function getTodos() {
+//        console.log('effect triggered')
         setLoading(true);
         fetch(url, {
             method: 'GET',
@@ -27,11 +25,27 @@ function useFetch() {
             .finally(() => {
                 setLoading(false);
             });
+    }, [url]);
+
+    function getTodos() {
+//        console.log('getTodos triggered')
+        fetch(url, {
+            method: 'GET',
+            mode: 'cors',
+        }).then((res) => {
+            return res.json();
+        })
+            .then((data) => {
+                setTodos(data);
+            })
+            .catch(error => {
+                setError(error);
+            })
     }
 
     function setTodo(data, method) {
+//        console.log('setTodos triggered')
         setLoading(true);
-        console.log(method)
         fetch(url, {
             method: method,
             mode: 'cors',
@@ -46,9 +60,11 @@ function useFetch() {
         })
         .finally(() => {
             setLoading(false);
+            getTodos();
         });
     }
-    return {todos, loading, error, getTodos, setTodo};
+
+    return {todos, loading, error, setTodo};
 }
 
 export default useFetch;

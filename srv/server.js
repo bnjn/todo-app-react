@@ -3,6 +3,10 @@ const Ajv = require('ajv');
 const ajv = new Ajv();
 
 // Express
+const fs = require('fs');
+const key = fs.readFileSync(process.env.SSL_KEY);
+const cert = fs.readFileSync(process.env.SSL_CERT);
+const https = require('https');
 const express = require('express');
 const app = express();
 const cors = require('cors');
@@ -73,8 +77,8 @@ MongoClient.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnified
         }));
 
         // Start server
-        app.listen(process.env.PORT, () => {
-            console.log('listening on port 1337');
+        https.createServer({key, cert}, app).listen(process.env.PORT, () => {
+            console.log(`listening on port ${process.env.PORT}`);
         });
 
         // GET routes

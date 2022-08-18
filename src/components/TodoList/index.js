@@ -6,7 +6,7 @@ function TodoList(props) {
     const handleDelete = props.handleDelete;
     const loading = props.loading;
 
-    //if (loading) return <h2>LOADING...</h2>;
+    if (loading) return <h2>LOADING...</h2>;
 
     return (
         <div className="tasks">
