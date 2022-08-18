@@ -30,8 +30,8 @@ Written with MERN.
 ## TODO:
 - ~~Seperate code into components~~
 - ~~Refactor a bit. (add env vars)~~
-- Data sanitisation, validation on back end and SSL.
-- Error messages for too many/little chars etc.
+- ~~Data sanitisation, validation on back end and SSL.~~
+- Error messages on front end for too many/little chars etc. Need to add validation on backend and logic for error response on front end.
 - Unit tests.
 - Improve css and html semantics.
 - Add user auth and new schema. todos within users. serve via /user.

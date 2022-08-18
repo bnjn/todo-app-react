@@ -5,6 +5,7 @@ import TodoList from "./components/TodoList";
 import Header from "./components/Header";
 import NewTaskForm from "./components/NewTaskForm";
 import useFetch from "./hooks/useFetch";
+import {decode} from "html-entities";
 
 function App() {
   const [currentTodo, setCurrentTodo] = useState(null);
@@ -13,8 +14,8 @@ function App() {
 
     useEffect(() => {
       if (currentTodo) {
-          document.querySelector('#editTitle').value = currentTodo.title;
-          document.querySelector('#editBody').value = currentTodo.task;
+          document.querySelector('#editTitle').value = decode(currentTodo.title);
+          document.querySelector('#editBody').value = decode(currentTodo.task);
       }
   }, [currentTodo]);
 
@@ -69,6 +70,7 @@ function App() {
             handleCreate={handleCreate}
         />
         <TodoList
+            decode={decode}
             todos={todos}
             loading={loading}
             handleComplete={handleComplete}

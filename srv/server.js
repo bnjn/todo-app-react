@@ -2,6 +2,13 @@ require('dotenv').config()
 const Ajv = require('ajv');
 const ajv = new Ajv();
 
+const sanitizeHtml = require('sanitize-html');
+const sanitizeOptions = {
+    allowedTags: [],
+    allowedAttributes: {},
+    disallowedTagsMode: 'recursiveEscape'
+}
+
 // Express
 const fs = require('fs');
 const key = fs.readFileSync(process.env.SSL_KEY);
@@ -87,8 +94,23 @@ MongoClient.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnified
         });
         app.get('/tasks', (req, res) => {
             todosCollection.find().sort({date: -1}).toArray()
-                .then(results => {
-                    res.status(200).send(results);
+                .then(dirtyResults => {
+                    //console.log(dirtyResults);
+                    return dirtyResults.map((result) => {
+                        return (
+                            {
+                                _id: result._id,
+                                title: sanitizeHtml(result.title, sanitizeOptions),
+                                task: sanitizeHtml(result.task, sanitizeOptions),
+                                completed: result.completed,
+                                date: sanitizeHtml(result.date, sanitizeOptions)
+                            }
+                        )
+                    });
+                })
+                .then(cleanResults => {
+                    //console.log(cleanResults);
+                    res.status(200).send(cleanResults);
                 })
                 .catch(error => console.error(error))
         });
