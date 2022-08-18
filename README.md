@@ -31,6 +31,7 @@ Written with MERN.
 - ~~Seperate code into components~~
 - ~~Refactor a bit. (add env vars)~~
 - ~~Data sanitisation, validation on back end and SSL.~~
+- Convert POST text to HTML entities before storing in DB (backend).
 - Error messages on front end for too many/little chars etc. Need to add validation on backend and logic for error response on front end.
 - Unit tests.
 - Improve css and html semantics.
