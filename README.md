@@ -3,26 +3,24 @@
 Written with MERN.
 
 ## Dev env
-- Set MongoDB server URL in `srv/.env`.
-- Create a db.
-- Create `srv/.env` with the text (fill in your DB and SSL info):
+- Spin up a MongoDB server and create a db for the app.
+- Create `srv/.env` with the text:
 
 `MONGODB_URL="<DBURLHERE>"`
 
-
 `DB_NAME="<DBNAMEHERE>"`
 
+`PORT="1337"`
 
-  `PORT="1337"`
-
-
-  `CORS_ORIGIN="*"`
-
+`CORS_ORIGIN="*"`
 
 `SSL_KEY="<SSLKEYHERE>"`
 
-
 `SSL_CERT="<SSLCERTHERE>"`
+
+(fill in your DB and SSL info)
+
+
 - `npm run dev` in `./srv` to start back end.
 - `npm start` in `./` to start front end.
 
