@@ -15,6 +15,7 @@ const key = fs.readFileSync(process.env.SSL_KEY);
 const cert = fs.readFileSync(process.env.SSL_CERT);
 const https = require('https');
 const express = require('express');
+const helmet = require('helmet');
 const app = express();
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -82,6 +83,7 @@ MongoClient.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnified
         app.use(cors({
             origin: process.env.CORS_ORIGIN
         }));
+        app.use(helmet());
 
         // Start server
         https.createServer({key, cert}, app).listen(process.env.PORT, () => {
