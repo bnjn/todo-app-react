@@ -1,10 +1,7 @@
-import useFetch from "../../hooks/useFetch";
-
 function EditModal(props) {
 
     const currentTodo = props.currentTodo;
     const setCurrentTodo = props.setCurrentTodo;
-    const {getTodos, setTodo} = useFetch();
 
     function handleEditModalClose(e) {
         e.preventDefault();
@@ -24,8 +21,7 @@ function EditModal(props) {
                 task: todo,
                 type: 'edit'
             }
-            setTodo(task,'PUT');
-            getTodos();
+            props.setTodo(task,'PUT');
         }
         const editModal = document.querySelector('.edit-modal');
         editModal.style.display = 'none';

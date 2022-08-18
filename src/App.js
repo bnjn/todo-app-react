@@ -5,15 +5,17 @@ import TodoList from "./components/TodoList";
 import Header from "./components/Header";
 import NewTaskForm from "./components/NewTaskForm";
 import useFetch from "./hooks/useFetch";
+import {decode} from "html-entities";
 
 function App() {
   const [currentTodo, setCurrentTodo] = useState(null);
-  const {todos, loading, error, getTodos, setTodo} = useFetch();
+    const {todos, loading, error, setTodo} = useFetch();
 
-  useEffect(() => {
+
+    useEffect(() => {
       if (currentTodo) {
-          document.querySelector('#editTitle').value = currentTodo.title;
-          document.querySelector('#editBody').value = currentTodo.task;
+          document.querySelector('#editTitle').value = decode(currentTodo.title);
+          document.querySelector('#editBody').value = decode(currentTodo.task);
       }
   }, [currentTodo]);
 
@@ -30,7 +32,6 @@ function App() {
                 date: new Date()
         }
         setTodo(task, 'POST');
-        getTodos();
     }
 
     function handleEditModal(e) {
@@ -43,7 +44,6 @@ function App() {
     function handleDelete(e) {
         e.preventDefault();
         setTodo({_id: e.target.parentNode.parentNode.id}, 'DELETE');
-        getTodos();
     }
 
     function handleComplete(e) {
@@ -55,7 +55,6 @@ function App() {
             completed: todo.completed
         }
         setTodo(task, 'PUT');
-        getTodos();
     }
 
   return (
@@ -64,13 +63,14 @@ function App() {
             currentTodo={currentTodo}
             setCurrentTodo={setCurrentTodo}
             todos={todos}
-            getTodos={getTodos}
+            setTodo={setTodo}
         />
         <Header />
         <NewTaskForm
             handleCreate={handleCreate}
         />
         <TodoList
+            decode={decode}
             todos={todos}
             loading={loading}
             handleComplete={handleComplete}

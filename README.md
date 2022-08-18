@@ -3,21 +3,24 @@
 Written with MERN.
 
 ## Dev env
-- Set MongoDB server URL in `srv/.env`.
-- Create a db and set the name in `srv/.env`.
-- Create a collection in the new DB named `todos`.
+- Spin up a MongoDB server and create a db for the app.
 - Create `srv/.env` with the text:
 
-`MONGODB_URL="DBURLHERE"`
+`MONGODB_URL="<DBURLHERE>"`
+
+`DB_NAME="<DBNAMEHERE>"`
+
+`PORT="1337"`
+
+`CORS_ORIGIN="*"`
+
+`SSL_KEY="<SSLKEYHERE>"`
+
+`SSL_CERT="<SSLCERTHERE>"`
+
+(fill in your DB and SSL info)
 
 
-`DB_NAME="todoapp"`
-
-
-  `PORT="1337"`
-
-
-  `CORS_ORIGIN="*"`
 - `npm run dev` in `./srv` to start back end.
 - `npm start` in `./` to start front end.
 
@@ -25,11 +28,12 @@ Written with MERN.
 ## TODO:
 - ~~Seperate code into components~~
 - ~~Refactor a bit. (add env vars)~~
-- Data sanitisation and validation on back end.
+- ~~Data sanitisation, validation on back end and SSL.~~
+- Convert POST text to HTML entities before storing in DB (backend).
+- Error messages on front end for too many/little chars etc. Need to add validation on backend and logic for error response on front end.
 - Unit tests.
-- Error messages on front end for empty fields, too many chars etc.
 - Improve css and html semantics.
-- Write docs and mongodb schema.
 - Add user auth and new schema. todos within users. serve via /user.
+- More unit tests.
 - Front end features.
 - Alerts and push notifications.

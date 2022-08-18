@@ -1,3 +1,5 @@
+
+
 function TodoList(props) {
 
     const todos = props.todos;
@@ -5,8 +7,9 @@ function TodoList(props) {
     const handleEditModal = props.handleEditModal;
     const handleDelete = props.handleDelete;
     const loading = props.loading;
+    const decode = props.decode;
 
-    //if (loading) return <h2>LOADING...</h2>;
+    if (loading) return <h2>LOADING...</h2>;
 
     return (
         <div className="tasks">
@@ -20,9 +23,9 @@ function TodoList(props) {
                     }
                     return (
                         <div onClick={handleComplete} className={`task-card ${completed}`} id={todo._id} key={index}>
-                            <h3>{todo.title}</h3>
-                            <p>{todo.task}</p>
-                            <p>{todo.date}</p>
+                            <h3>{decode(todo.title)}</h3>
+                            <p>{decode(todo.task)}</p>
+                            <p>{decode(todo.date)}</p>
                             <div onClick={(e) => e.stopPropagation()}>
                                 <button type='button' onClick={handleEditModal}>Edit</button>
                                 <button type='button' onClick={handleDelete}>Delete</button>
