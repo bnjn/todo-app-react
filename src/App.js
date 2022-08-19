@@ -9,15 +9,26 @@ import {decode} from "html-entities";
 
 function App() {
   const [currentTodo, setCurrentTodo] = useState(null);
-    const {todos, loading, error, setTodo} = useFetch();
+    const {todos, loading, validationError, setValidationError, setTodo} = useFetch();
 
-
+    // Set currentTodo state to edit box values
     useEffect(() => {
       if (currentTodo) {
           document.querySelector('#editTitle').value = decode(currentTodo.title);
           document.querySelector('#editBody').value = decode(currentTodo.task);
       }
   }, [currentTodo]);
+
+    // Handle input validation errors from API
+    useEffect(() => {
+      if (validationError) {
+            validationError.forEach((error) => {
+                //console.log(`${error.type.charAt(0).toUpperCase() + error.type.slice(1)} ${error.error}.`);
+                alert(`${error.type.charAt(0).toUpperCase() + error.type.slice(1)} ${error.error}.`)
+            });
+            setValidationError(null);
+      }
+    }, [validationError]);
 
     // Handle onClicks
 
