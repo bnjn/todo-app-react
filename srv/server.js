@@ -1,6 +1,9 @@
+// init .env vars
 require('dotenv').config()
+
+// Ajv and sanitize-html options
 const Ajv = require('ajv');
-const ajv = new Ajv();
+const ajv = new Ajv({allErrors: true});
 
 const sanitizeHtml = require('sanitize-html');
 const sanitizeOptions = {
@@ -8,6 +11,10 @@ const sanitizeOptions = {
     allowedAttributes: {},
     disallowedTagsMode: 'recursiveEscape'
 }
+
+// MongoDB
+const MongoClient = require('mongodb').MongoClient;
+const {ObjectId} = require("mongodb");
 
 // Express
 const fs = require('fs');
@@ -19,18 +26,21 @@ const helmet = require('helmet');
 const app = express();
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const {ObjectId} = require("mongodb");
 
-// MongoDB
-const MongoClient = require('mongodb').MongoClient;
 
-// Define schema
+// Define schema and validation formats
+
+ajv.addFormat('putTypes', {
+   validate: (type) => type === 'edit' || 'complete'
+});
+
+ajv.addFormat('objectId', /\S{24}/);
 
 const createSchema = {
     type: 'object',
     properties: {
-        title: {type: 'string'},
-        task: {type: 'string'},
+        title: {type: 'string', minLength: 1, maxLength: 50},
+        task: {type: 'string', minLength: 1, maxLength: 280},
         completed: {type: 'boolean'},
         date: {type: 'string'}
     },
@@ -41,10 +51,10 @@ const createSchema = {
 const editSchema = {
     type: 'object',
     properties: {
-        _id: {type: 'string'},
-        title: {type: 'string'},
-        task: {type: 'string'},
-        type: {type: 'string'},
+        _id: {type: 'string', format: 'objectId'},
+        title: {type: 'string', minLength: 1, maxLength: 50},
+        task: {type: 'string', minLength: 1, maxLength: 280},
+        type: {type: 'string', format: 'putTypes'},
     },
     required: ['_id', 'title', 'task', 'type'],
     additionalProperties: false
@@ -53,8 +63,8 @@ const editSchema = {
 const completeSchema = {
     type: 'object',
     properties: {
-        _id: {type: 'string'},
-        type: {type: 'string'},
+        _id: {type: 'string', format: 'objectId'},
+        type: {type: 'string', format: 'putTypes'},
         completed: {type: 'boolean'},
     },
     required: ['_id', 'type', 'completed'],
@@ -64,40 +74,48 @@ const completeSchema = {
 const deleteSchema = {
     type: 'object',
     properties: {
-        _id: {type: 'string'}
+        _id: {type: 'string', format: 'objectId'}
     },
     required: ['_id'],
     additionalProperties: false
 }
 
+// Main Server. Must connect to a MongoDB instance before starting API.
 MongoClient.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnifiedTopology: true })
     .then((client) => {
-        // DB Setup
-        const db = client.db(process.env.DB_NAME);
         console.log(`Connected MongoDB`);
+
+        // Connect to DB
+        const db = client.db(process.env.DB_NAME);
         console.log(`Database: ${process.env.DB_NAME}`);
         const todosCollection = db.collection('todos');
 
         // Middleware
         app.use(bodyParser.json());
+
         app.use(cors({
-            origin: process.env.CORS_ORIGIN
+            "origin": process.env.CORS_ORIGIN,
+            "methods": "GET,PUT,POST,DELETE"
         }));
+
         app.use(helmet());
 
-        // Start server
+        // Start server with HTTPS
         https.createServer({key, cert}, app).listen(process.env.PORT, () => {
             console.log(`listening on port ${process.env.PORT}`);
         });
 
         // GET routes
+
+        // Respond to root GET with a message
         app.get('/', (req, res) => {
             res.send('Todo backend up and running.');
         });
+
+        // Grab todos from DB and sanitise the relevant output.
         app.get('/tasks', (req, res) => {
             todosCollection.find().sort({date: -1}).toArray()
                 .then(dirtyResults => {
-                    //console.log(dirtyResults);
                     return dirtyResults.map((result) => {
                         return (
                             {
@@ -111,26 +129,42 @@ MongoClient.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnified
                     });
                 })
                 .then(cleanResults => {
-                    //console.log(cleanResults);
                     res.status(200).send(cleanResults);
                 })
                 .catch(error => console.error(error))
         });
 
         // POST routes
+
+        // Validate POST data against schema and insert into DB if valid. If not respond with an array of objects containing the error type and message.
         app.post('/tasks',(req, res) => {
             const validate = ajv.compile(createSchema);
             if (validate(req.body)) {
                 todosCollection.insertOne(req.body)
-                .then(result => {res.status(200).send()})
+                .then(result => {res.json('success')})
                 .catch(err => console.error(err))
             } else {
-                res.json('invalid request body')
-                .catch(err => console.error(err));
+                if (validate.errors) {
+                    const errors = validate.errors.map((error) => {
+                        return {
+                            type: error.instancePath.replace('/', ''),
+                            error: error.message
+                        }
+                    });
+                    console.log(errors);
+                    res.json(errors);
+                } else {
+                    console.log('no input');
+                    res.status(500).send();
+                }
             }
         });
 
         // PUT routes
+
+        // Check if req.body.type is a valid input, then validate PUT data against schema. Edit or complete DB entry if valid and the ObjectId matches.
+        // If not respond with an array of objects containing the error type/s and message/s.
+        // TODO: run all validation through ajv. remove if/else for req.body.type
         app.put('/tasks', (req, res) => {
             if (req.body.type === 'edit') {
                 const validate = ajv.compile(editSchema);
@@ -152,8 +186,19 @@ MongoClient.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnified
                         })
                         .catch(error => console.error(error))
                 } else {
-                    res.json('invalid request body')
-                        .catch(err => console.error(err));
+                    if (validate.errors) {
+                        const errors = validate.errors.map((error) => {
+                            return {
+                                type: error.instancePath.replace('/', ''),
+                                error: error.message
+                            }
+                        });
+                        console.log(errors);
+                        res.json(errors);
+                    } else {
+                        console.log('no input');
+                        res.status(500).send();
+                    }
                 }
             } else if (req.body.type === 'complete') {
                 const validate = ajv.compile(completeSchema);
@@ -175,16 +220,28 @@ MongoClient.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnified
                     })
                     .catch(error => console.error(error))
                 } else {
-                    res.json('invalid request body')
-                        .catch(err => console.error(err));
+                    if (validate.errors) {
+                        const errors = validate.errors.map((error) => {
+                            return {
+                                type: error.instancePath.replace('/', ''),
+                                error: error.message
+                            }
+                        });
+                        console.log(errors);
+                        res.json(errors);
+                    } else {
+                        console.log('no input');
+                        res.status(500).send();
+                    }
                 }
             } else {
-                res.json('invalid PUT type')
-                .catch((error => console.error(error)));
+                res.json('invalid PUT type');
             }
         });
 
         // DELETE routes
+
+        // Validate DELETE data against schema and remove matching ObjectId from DB if valid. If not respond with an array of objects containing the error type and message.
         app.delete('/tasks', (req, res) => {
             const validate = ajv.compile(deleteSchema);
             if (validate(req.body)) {
@@ -196,8 +253,19 @@ MongoClient.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnified
                     })
                     .catch(error => console.error(error))
             } else {
-                res.json('invalid request body')
-                    .catch(err => console.error(err));
+                if (validate.errors) {
+                    const errors = validate.errors.map((error) => {
+                        return {
+                            type: error.instancePath.replace('/', ''),
+                            error: error.message
+                        }
+                    });
+                    console.log(errors);
+                    res.json(errors);
+                } else {
+                    console.log('no input');
+                    res.status(500).send();
+                }
             }
         });
     })

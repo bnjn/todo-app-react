@@ -6,9 +6,11 @@ function useFetch() {
     const [todos, setTodos] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [validationError, setValidationError] = useState(null);
 
+
+    // Get todos from API on first render and set a state with the result if OK.
     useEffect(() => {
-//        console.log('effect triggered')
         setLoading(true);
         fetch(url, {
             method: 'GET',
@@ -21,14 +23,22 @@ function useFetch() {
             })
             .catch(error => {
                 setError(error);
+                console.log(error);
             })
             .finally(() => {
                 setLoading(false);
             });
     }, [url]);
 
+    // Log any API errors to console.
+    useEffect((error) => {
+        if (error) {
+            console.log(error);
+        }
+        }, [error]);
+
+    // Refresh state with todos from the API
     function getTodos() {
-//        console.log('getTodos triggered')
         fetch(url, {
             method: 'GET',
             mode: 'cors',
@@ -43,8 +53,8 @@ function useFetch() {
             })
     }
 
+    // Handles POST, PUT and DELETE http methods with JSON as the request body. If the data is malformed, it will set validationError with the reason/s.
     function setTodo(data, method) {
-//        console.log('setTodos triggered')
         setLoading(true);
         fetch(url, {
             method: method,
@@ -55,6 +65,17 @@ function useFetch() {
             },
             body: JSON.stringify(data)
         })
+        .then((res) => {
+            return res.json();
+        })
+        .then((data) => {
+            // Expect errors as an array of objects with props: type and error.
+            if (data && Array.isArray(data)) {
+                if (data.length > 0) {
+                    setValidationError(data);
+                }
+            }
+        })
         .catch(error => {
             setError(error);
         })
@@ -64,7 +85,7 @@ function useFetch() {
         });
     }
 
-    return {todos, loading, error, setTodo};
+    return {todos, loading, setValidationError, validationError, setTodo, error};
 }
 
 export default useFetch;
