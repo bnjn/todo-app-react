@@ -1,6 +1,6 @@
 require('dotenv').config()
 const Ajv = require('ajv');
-const ajv = new Ajv();
+const ajv = new Ajv({allErrors: true});
 
 const sanitizeHtml = require('sanitize-html');
 const sanitizeOptions = {
@@ -24,13 +24,19 @@ const {ObjectId} = require("mongodb");
 // MongoDB
 const MongoClient = require('mongodb').MongoClient;
 
-// Define schema
+// Define schema and validation formats
+
+ajv.addFormat('putTypes', {
+   validate: (type) => type === 'edit' || 'complete'
+});
+
+ajv.addFormat('objectId', /\S{24}/);
 
 const createSchema = {
     type: 'object',
     properties: {
-        title: {type: 'string'},
-        task: {type: 'string'},
+        title: {type: 'string', minLength: 1, maxLength: 50},
+        task: {type: 'string', minLength: 1, maxLength: 280},
         completed: {type: 'boolean'},
         date: {type: 'string'}
     },
@@ -41,10 +47,10 @@ const createSchema = {
 const editSchema = {
     type: 'object',
     properties: {
-        _id: {type: 'string'},
-        title: {type: 'string'},
-        task: {type: 'string'},
-        type: {type: 'string'},
+        _id: {type: 'string', format: 'objectId'},
+        title: {type: 'string', minLength: 1, maxLength: 50},
+        task: {type: 'string', minLength: 1, maxLength: 280},
+        type: {type: 'string', format: 'putTypes'},
     },
     required: ['_id', 'title', 'task', 'type'],
     additionalProperties: false
@@ -53,8 +59,8 @@ const editSchema = {
 const completeSchema = {
     type: 'object',
     properties: {
-        _id: {type: 'string'},
-        type: {type: 'string'},
+        _id: {type: 'string', format: 'objectId'},
+        type: {type: 'string', format: 'putTypes'},
         completed: {type: 'boolean'},
     },
     required: ['_id', 'type', 'completed'],
@@ -64,7 +70,7 @@ const completeSchema = {
 const deleteSchema = {
     type: 'object',
     properties: {
-        _id: {type: 'string'}
+        _id: {type: 'string', format: 'objectId'}
     },
     required: ['_id'],
     additionalProperties: false
@@ -81,7 +87,8 @@ MongoClient.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnified
         // Middleware
         app.use(bodyParser.json());
         app.use(cors({
-            origin: process.env.CORS_ORIGIN
+            "origin": process.env.CORS_ORIGIN,
+            "methods": "GET,PUT,POST,DELETE"
         }));
         app.use(helmet());
 
@@ -125,8 +132,19 @@ MongoClient.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnified
                 .then(result => {res.status(200).send()})
                 .catch(err => console.error(err))
             } else {
-                res.json('invalid request body')
-                .catch(err => console.error(err));
+                if (validate.errors) {
+                    const errors = validate.errors.map((error) => {
+                        return {
+                            type: error.instancePath.replace('/', ''),
+                            error: error.message
+                        }
+                    });
+                    console.log(errors);
+                    res.json(errors);
+                } else {
+                    console.log('no input');
+                    res.status(500).send();
+                }
             }
         });
 
@@ -152,8 +170,19 @@ MongoClient.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnified
                         })
                         .catch(error => console.error(error))
                 } else {
-                    res.json('invalid request body')
-                        .catch(err => console.error(err));
+                    if (validate.errors) {
+                        const errors = validate.errors.map((error) => {
+                            return {
+                                type: error.instancePath.replace('/', ''),
+                                error: error.message
+                            }
+                        });
+                        console.log(errors);
+                        res.json(errors);
+                    } else {
+                        console.log('no input');
+                        res.status(500).send();
+                    }
                 }
             } else if (req.body.type === 'complete') {
                 const validate = ajv.compile(completeSchema);
@@ -175,12 +204,22 @@ MongoClient.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnified
                     })
                     .catch(error => console.error(error))
                 } else {
-                    res.json('invalid request body')
-                        .catch(err => console.error(err));
+                    if (validate.errors) {
+                        const errors = validate.errors.map((error) => {
+                            return {
+                                type: error.instancePath.replace('/', ''),
+                                error: error.message
+                            }
+                        });
+                        console.log(errors);
+                        res.json(errors);
+                    } else {
+                        console.log('no input');
+                        res.status(500).send();
+                    }
                 }
             } else {
-                res.json('invalid PUT type')
-                .catch((error => console.error(error)));
+                res.json('invalid PUT type');
             }
         });
 
@@ -196,8 +235,19 @@ MongoClient.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnified
                     })
                     .catch(error => console.error(error))
             } else {
-                res.json('invalid request body')
-                    .catch(err => console.error(err));
+                if (validate.errors) {
+                    const errors = validate.errors.map((error) => {
+                        return {
+                            type: error.instancePath.replace('/', ''),
+                            error: error.message
+                        }
+                    });
+                    console.log(errors);
+                    res.json(errors);
+                } else {
+                    console.log('no input');
+                    res.status(500).send();
+                }
             }
         });
     })
